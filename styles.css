@@ -1,0 +1,91 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f8f9fa;
+}
+
+.container {
+    width: 90%;
+    max-width: 600px;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5); /* Opacidad 50% */
+    text-align: center;
+    overflow-y: auto; /* Permitir desplazamiento vertical interno */
+    max-height: calc(100vh - 40px); /* Ajustar la altura máxima al 100% de la altura de la ventana menos el espacio de relleno */
+    background-color: rgba(255, 255, 255, 0.1); /* Opacidad 10% */
+}
+
+/* Estilos para la mascota virtual */
+
+.pet-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    cursor: grab; /* Cambio de cursor a mano para indicar que la mascota es arrastrable */
+}
+
+.pet {
+    width: 150px;
+    height: 150px; /* Ajusta el tamaño de la mascota según sea necesario */
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    transition: transform 0.2s ease;
+    /* Añade otros estilos según sea necesario */
+}
+
+/* Animación para mover la mascota */
+@keyframes movePet {
+    0% { transform: translate(-50%, -50%); }
+    25% { transform: translate(-40%, -50%); }
+    50% { transform: translate(-30%, -50%); }
+    75% { transform: translate(-20%, -50%); }
+    100% { transform: translate(-10%, -50%); }
+}
+
+/* Estilos para los botones y campos de entrada */
+
+.button {
+    padding: 10px 20px;
+    margin-top: 10px;
+    background-color: #ff5733; /* Color naranja para los botones */
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.button:hover {
+    background-color: #e84118; /* Cambio de color al pasar el mouse */
+    transform: scale(1.1);
+}
+
+input[type="text"] {
+    width: calc(100% - 22px);
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+/* Otros estilos */
+
+ul {
+    list-style-type: none;
+    padding: 0;
+    text-align: left;
+}
+
+li {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mascota Virtual</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        /* Estilos para la introducción */
+        .intro-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .intro-text {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #333;
+            animation: fadeInOut 4s ease-out;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Introducción -->
+<div class="intro-container">
+    <div class="intro-text">Nova Studios</div>
+</div>
+
+<!-- Contenido principal -->
+<div id="welcome-screen" class="welcome-screen">
+    <h1>Bienvenido</h1>
+</div>
+
+<div id="loader-overlay" class="loader-overlay">
+    <div class="loader"></div>
+</div>
+
+<div class="container" id="app-container" style="display: none;">
+    <h1>Lista de Tareas Semanales</h1>
+    <div id="taskContainer">
+        <!-- Aquí se llenarán las tareas y días de la semana desde JavaScript -->
+    </div>
+    <input type="file" accept="image/*" id="fileInput" style="display: none;">
+    <button onclick="selectBackgroundImage()" class="button">Seleccionar Imagen de Fondo</button>
+    <input type="file" accept="image/*" id="petFileInput" style="display: none;">
+    <button onclick="selectPetImage()" class="button">Seleccionar Imagen de Mascota</button>
+</div>
+
+<div class="pet-container" id="pet-container">
+    <div id="pet" class="pet"></div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="script.js"></script>
+<script>
+    const weekDays = [
+        { name: "Lunes", tasks: [] },
+        { name: "Martes", tasks: [] },
+        { name: "Miércoles", tasks: [] },
+        { name: "Jueves", tasks: [] },
+        { name: "Viernes", tasks: [] }
+    ];
+
+    function saveTasksToLocalStorage() {
+        localStorage.setItem('weekDays', JSON.stringify(weekDays));
+    }
+
+    function loadTasksFromLocalStorage() {
+        const savedTasks = localStorage.getItem('weekDays');
+        if (savedTasks) {
+            const parsedTasks = JSON.parse(savedTasks);
+            parsedTasks.forEach((day, index) => {
+                weekDays[index].tasks = day.tasks;
+            });
+        }
+    }
+
+    function renderTasks() {
+        const taskContainer = document.getElementById('taskContainer');
+        taskContainer.innerHTML = '';
+
+        weekDays.forEach(day => {
+            const dayContainer = document.createElement('div');
+            dayContainer.classList.add('day-container');
+
+            const dayTitle = document.createElement('h3');
+            dayTitle.textContent = day.name;
+            dayContainer.appendChild(dayTitle);
+
+            const taskList = document.createElement('ul');
+            day.tasks.forEach(task => {
+                const taskItem = document.createElement('li');
+                taskItem.textContent = task;
+                taskList.appendChild(taskItem);
+            });
+            dayContainer.appendChild(taskList);
+
+            const inputTask = document.createElement('input');
+            inputTask.setAttribute('type', 'text');
+            inputTask.setAttribute('placeholder', 'Agregar tarea');
+            dayContainer.appendChild(inputTask);
+
+            const addButton = document.createElement('button');
+            addButton.textContent = 'Agregar Tarea';
+            addButton.classList.add('button');
+            addButton.addEventListener('click', () => {
+                const newTask = inputTask.value.trim();
+                if (newTask !== '') {
+                    day.tasks.unshift(newTask);
+                    renderTasks();
+                    saveTasksToLocalStorage();
+                    inputTask.value = '';
+                }
+            });
+            dayContainer.appendChild(addButton);
+
+            const resetButton = document.createElement('button');
+            resetButton.textContent = 'Reiniciar Día';
+            resetButton.classList.add('button');
+            resetButton.addEventListener('click', () => {
+                day.tasks = [];
+                renderTasks();
+                saveTasksToLocalStorage();
+            });
+            dayContainer.appendChild(resetButton);
+
+            const notifyButton = document.createElement('button');
+            notifyButton.textContent = 'Notificar';
+            notifyButton.classList.add('button');
+            notifyButton.addEventListener('click', () => {
+                showDateTimePicker(dayContainer, day.name);
+            });
+            dayContainer.appendChild(notifyButton);
+
+            taskContainer.appendChild(dayContainer);
+        });
+    }
+
+    function showDateTimePicker(container, dayName) {
+        const dateTimeContainer = document.createElement('div');
+        dateTimeContainer.classList.add('datetime-container');
+
+        const dateInput = document.createElement('input');
+        dateInput.setAttribute('type', 'text');
+        dateInput.classList.add('datetime-picker');
+        dateInput.placeholder = 'Seleccionar fecha y hora';
+
+        const acceptButton = document.createElement('button');
+        acceptButton.textContent = 'Aceptar';
+        acceptButton.classList.add('button');
+        acceptButton.addEventListener('click', () => {
+            const selectedDateTime = dateInput.value;
+            if (selectedDateTime) {
+                alert(`Notificación programada para ${dayName} a las ${selectedDateTime}`);
+                closeModal(dateTimeContainer);
+            } else {
+                alert('Selecciona una fecha y hora válidas');
+            }
+        });
+
+        dateTimeContainer.appendChild(dateInput);
+        dateTimeContainer.appendChild(acceptButton);
+        container.appendChild(dateTimeContainer);
+
+        const buttonRect = container.querySelector('.button').getBoundingClientRect();
+        dateTimeContainer.style.position = 'absolute';
+        dateTimeContainer.style.top = buttonRect.bottom + 'px';
+        dateTimeContainer.style.left = buttonRect.left + 'px';
+
+        flatpickr(dateInput, {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            defaultDate: "today"
+        });
+    }
+
+    function closeModal(modal) {
+        modal.remove();
+    }
+
+    function selectBackgroundImage() {
+        const fileInput = document.getElementById('fileInput');
+        fileInput.onchange = function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageUrl = e.target.result;
+                    document.body.style.backgroundImage = `url('${imageUrl}')`;
+                    document.body.style.backgroundSize = 'cover';
+                    document.body.style.backgroundRepeat = 'no-repeat';
+                    document.body.style.backgroundPosition = 'center';
+                    localStorage.setItem('backgroundImage', imageUrl); // Guardar la imagen de fondo en localStorage
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+        fileInput.click();
+    }
+
+    function selectPetImage() {
+        const fileInput = document.getElementById('petFileInput');
+        fileInput.onchange = function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageUrl = e.target.result;
+                    changePetTexture(imageUrl); // Llama a la función para cambiar la textura de la mascota
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+        fileInput.click();
+    }
+
+    function changePetTexture(textureUrl) {
+        const pet = document.getElementById('pet');
+        pet.style.backgroundImage = `url('${textureUrl}')`;
+        pet.style.backgroundSize = 'cover';
+        pet.style.backgroundRepeat = 'no-repeat';
+        pet.style.backgroundPosition = 'center';
+    }
+
+    function loadBackgroundImage() {
+        const backgroundImage = localStorage.getItem('backgroundImage');
+        if (backgroundImage) {
+            document.body.style.backgroundImage = `url('${backgroundImage}')`;
+            document.body.style.backgroundSize = 'cover';
+            document.body.style.backgroundRepeat = 'no-repeat';
+            document.body.style.backgroundPosition = 'center';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => {
+            const introContainer = document.querySelector('.intro-container');
+            if (introContainer) {
+                introContainer.style.display = 'none';
+            }
+            document.getElementById('welcome-screen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('welcome-screen').style.display = 'none';
+                document.getElementById('app-container').style.display = 'block';
+                startMovingFromCenter(); // Llamar a la función para comenzar el movimiento desde el centro
+                loadTasksFromLocalStorage();
+                loadBackgroundImage();
+                renderTasks();
+            }, 500);
+        }, 4000); // Espera 4 segundos antes de ocultar la introducción y empezar el movimiento
+    });
+
+    // Código JavaScript para la mascota virtual con movimiento continuo
+
+    const petContainer = document.querySelector('.pet-container');
+    let moveInterval;
+
+    function startMovingFromCenter() {
+        const centerX = window.innerWidth / 2 - petContainer.offsetWidth / 2;
+        const centerY = window.innerHeight / 2 - petContainer.offsetHeight / 2;
+        petContainer.style.left = centerX + 'px';
+        petContainer.style.top = centerY + 'px';
+        moveInterval = setInterval(moveAutomatically, 100); // Iniciar movimiento automático desde el centro
+    }
+
+    function moveAutomatically() {
+        let currentLeft = parseInt(petContainer.style.left) || 0;
+        let currentTop = parseInt(petContainer.style.top) || 0;
+        const maxX = window.innerWidth - petContainer.offsetWidth;
+        const maxY = window.innerHeight - petContainer.offsetHeight;
+
+        // Simular movimiento en una dirección
+        currentLeft += 1;
+        if (currentLeft > maxX) {
+            currentLeft = 0;
+        }
+
+        petContainer.style.left = currentLeft + 'px';
+        petContainer.style.top = currentTop + 'px';
+    }
+</script>
+
+</body>
+</html>
